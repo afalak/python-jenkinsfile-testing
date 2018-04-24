@@ -7,87 +7,37 @@ pipeline {
     agent {
         dockerfile {
         label "dind"
-        args "-v /tmp:/tmp --name PropelPython3Build --memory-swappiness 5 --ulimit nofile=90000:90000 --privileged"
         }
     }    
     options {
         buildDiscarder(
-            // Only keep the 10 most recent builds
             logRotator(numToKeepStr:'10'))
     }
     environment {
         projectName = 'ProjectTemplate'
         emailTo = 'falak.ahmed@ge.com'
-        emailFrom = 'axc@build.ge.com'
-        VIRTUAL_ENV = "${env.WORKSPACE}/venv"
+        emailFrom = 'AnalyticsCore@build.ge.com'
     }
 
     stages {
 
-        /*
         stage ('Checkout') {
             steps {
                 checkout scm
             }
         }
-        */
 
         stage ('Install_Requirements') {
             steps {
-                sh """
-                    echo ${SHELL}
-                    [ -d venv ] && rm -rf venv
-                    #virtualenv --python=python2.7 venv
-                    virtualenv venv
-                    #. venv/bin/activate
-                    export PATH=${VIRTUAL_ENV}/bin:${PATH}
-                    pip install --upgrade pip
-                    pip install -r requirements.txt -r dev-requirements.txt
-                    make clean
-                """
-            }
-        }
-
-        stage ('Check_style') {
-            steps {
-                sh """
-                    #. venv/bin/activate
-                    [ -d report ] || mkdir report
-                    export PATH=${VIRTUAL_ENV}/bin:${PATH}
-                    make check || true
-                """
-                sh """
-                    export PATH=${VIRTUAL_ENV}/bin:${PATH}
-                    make flake8 | tee report/flake8.log || true
-                """
-                sh """
-                    export PATH=${VIRTUAL_ENV}/bin:${PATH}
-                    make pylint | tee report/pylint.log || true
-                """
-                step([$class: 'WarningsPublisher',
-                  parserConfigurations: [[
-                    parserName: 'Pep8',
-                    pattern: 'report/flake8.log'
-                  ],
-                  [
-                    parserName: 'pylint',
-                    pattern: 'report/pylint.log'
-                  ]],
-                  unstableTotalAll: '0',
-                  usePreviousBuildAsReference: true
-                ])
+                pip install -r requirements.txt -r dev-requirements.txt
+                make clean
             }
         }
 
         stage ('Unit Tests') {
             steps {
-                sh """
-                    #. venv/bin/activate
-                    export PATH=${VIRTUAL_ENV}/bin:${PATH}
-                    make unittest || true
-                """
+                make unittest || true
             }
-
             post {
                 always {
                     junit keepLongStdio: true, testResults: 'report/nosetests.xml'
@@ -102,15 +52,8 @@ pipeline {
 
         stage ('System Tests') {
             steps {
-                sh """
-                    #. venv/bin/activate
-                    export PATH=${VIRTUAL_ENV}/bin:${PATH}
-                    // Write file containing test node connection information if needed.
-                    // writeFile file: "test/fixtures/nodes.yaml", text: "---\n- node: <some-ip>\n"
-                    make systest || true
-                """
+                make systest || true
             }
-
             post {
                 always {
                     junit keepLongStdio: true, testResults: 'report/nosetests.xml'
@@ -125,11 +68,7 @@ pipeline {
 
         stage ('Docs') {
             steps {
-                sh """
-                    #. venv/bin/activate
-                    export PATH=${VIRTUAL_ENV}/bin:${PATH}
-                    PYTHONPATH=. pdoc --html --html-dir docs --overwrite env.projectName
-                """
+                PYTHONPATH=. pdoc --html --html-dir docs --overwrite env.projectName
             }
 
             post {
@@ -140,12 +79,6 @@ pipeline {
                         reportName: 'Module Documentation'
                     ]
                 }
-            }
-        }
-
-        stage ('Cleanup') {
-            steps {
-                sh 'rm -rf venv'
             }
         }
     }
