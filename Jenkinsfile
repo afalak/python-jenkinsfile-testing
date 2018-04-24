@@ -30,6 +30,7 @@ pipeline {
         stage ('Install_Requirements') {
             steps {
                 sh 'pip install -r requirements.txt'
+                sh 'pip install -r dev-requirements.txt'
                 sh 'make clean'
             }
         }
