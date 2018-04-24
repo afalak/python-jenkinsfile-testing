@@ -29,8 +29,8 @@ pipeline {
 
         stage ('Install_Requirements') {
             steps {
-                pip install -r requirements.txt
-                make clean
+                bash "pip install -r requirements.txt"
+                bash "make clean"
             }
         }
 
