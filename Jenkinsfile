@@ -4,7 +4,12 @@
  * Jenkinsfile
  */
 pipeline {
-    agent any
+    agent {
+        dockerfile {
+        label "dind"
+        args "-v /tmp:/tmp --name PropelPython3Build --memory-swappiness 5 --ulimit nofile=90000:90000 --privileged"
+        }
+    }    
     options {
         buildDiscarder(
             // Only keep the 10 most recent builds
@@ -12,8 +17,8 @@ pipeline {
     }
     environment {
         projectName = 'ProjectTemplate'
-        emailTo = 'jere@arista.com'
-        emailFrom = 'eosplus-dev+jenkins@arista.com'
+        emailTo = 'falak.ahmed@ge.com'
+        emailFrom = 'axc@build.ge.com'
         VIRTUAL_ENV = "${env.WORKSPACE}/venv"
     }
 
