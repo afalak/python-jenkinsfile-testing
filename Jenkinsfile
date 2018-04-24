@@ -65,22 +65,6 @@ pipeline {
                 }
             }
         }
-
-        stage ('Docs') {
-            steps {
-                PYTHONPATH=. pdoc --html --html-dir docs --overwrite env.projectName
-            }
-
-            post {
-                always {
-                    publishHTML target: [
-                        reportDir: 'docs/*',
-                        reportFiles: 'index.html',
-                        reportName: 'Module Documentation'
-                    ]
-                }
-            }
-        }
     }
 
     post {
