@@ -29,14 +29,14 @@ pipeline {
 
         stage ('Install_Requirements') {
             steps {
-                bash "pip install -r requirements.txt"
-                bash "make clean"
+                bash 'pip install -r requirements.txt'
+                bash 'make clean'
             }
         }
 
         stage ('Unit Tests') {
             steps {
-                make unittest || true
+                bash 'make unittest || true'
             }
             post {
                 always {
@@ -52,7 +52,7 @@ pipeline {
 
         stage ('System Tests') {
             steps {
-                make systest || true
+                bash 'make systest || true'
             }
             post {
                 always {
